@@ -3,478 +3,646 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calgary Weather - Digital Billboard</title>
+    <title>Bow Valley Weather Dashboard</title>
+    
+    <!-- Import Poppins Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        :root {
-            --bg-gradient-start: #6f79ff;
-            --bg-gradient-end: #9ee6ff;
-            --card-bg: rgba(255, 255, 255, 0.14);
-            --card-border: rgba(255, 255, 255, 0.24);
-            --text-primary: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.8);
-            --text-muted: rgba(255, 255, 255, 0.6);
-        }
-
+        /* ========================================
+           CSS RESET & BASE
+           ======================================== */
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            margin: 0;
-            font-family: "Poppins", sans-serif;
-            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
-            color: var(--text-primary);
-            min-height: 100vh;
+            height: 100vh;
+            width: 100vw;
+            font-family: 'Poppins', sans-serif;
+            color: white;
+            
+            /* Gradient background matching mockup */
+            background: linear-gradient(135deg, #6B9AFF 0%, #A78EF7 50%, #D898FF 100%);
+            background-size: 100% 100%;
+            
+            /* Center the dashboard */
             display: flex;
-            align-items: center;
             justify-content: center;
-            padding: 24px;
+            align-items: center;
+            overflow: hidden;
+            
+            /* Prevent text selection for TV display */
+            user-select: none;
+            -webkit-user-select: none;
         }
 
-        .weather-app {
-            width: min(100%, 1080px);
-            backdrop-filter: blur(24px);
-            background: rgba(255, 255, 255, 0.12);
-            border-radius: 32px;
+        /* ========================================
+           MAIN DASHBOARD CONTAINER
+           ======================================== */
+        .dashboard-container {
+            /* Dimensions: 1920x1080 with 100px padding = 1720x880 */
+            width: 1720px;
+            height: 880px;
+            flex-shrink: 0;
+            
+            /* Glassmorphism effect */
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
             border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: clamp(24px, 3vw, 48px);
-            display: grid;
-            gap: clamp(16px, 2vw, 32px);
-            grid-template-rows: auto 1fr;
-            box-shadow: 0 24px 60px rgba(64, 56, 128, 0.35);
-            position: relative;
+            border-radius: 60px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            
+            /* Internal padding */
+            padding: 75px;
+            
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ========================================
+           HEADER SECTION
+           ======================================== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-shrink: 0;
+            margin-bottom: 0; /* Reset margin to allow flex spacing to take over */
+        }
+
+        .location-info h1 {
+            font-weight: 700;
+            font-size: 48px;
+            line-height: 1.1;
+            margin-bottom: 0;            
+        }
+
+        .location-info h2 {
+            font-weight: 400;
+            font-size: 26px;
+            opacity: 0.85;
+            letter-spacing: 0.3px;                     
+            margin-top: 15px; 
         }
 
         .branding {
-            position: absolute;
-            top: clamp(24px, 3vw, 48px);
-            right: clamp(24px, 3vw, 48px);
-            font-size: clamp(0.85rem, 1.1vw, 1rem);
-            color: var(--text-secondary);
             text-align: right;
-            font-weight: 500;
-            line-height: 1.4;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 20px;
         }
 
+        .brought-to-you {
+            font-size: 21px;
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        /* Logo styling with fallback */
+        .logo-container {
+            width: 280px;
+            height: 99px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .logo-svg {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        /* ========================================
+           CURRENT WEATHER SECTION
+           ======================================== */
         .current-weather {
-            display: grid;
-            gap: 16px;
-        }
-
-        .current-weather__header {
-            display: flex;
-            justify-content: flex-start;
-            align-items: flex-start;
-            gap: 24px;
-        }
-
-        .location {
-            font-size: clamp(1.5rem, 2.5vw, 2.25rem);
-            font-weight: 600;
-            margin: 0;
-        }
-
-        .date {
-            margin: 4px 0 0;
-            font-size: clamp(1rem, 1.6vw, 1.25rem);
-            color: var(--text-secondary);
-        }
-
-        .current-weather__details {
             display: flex;
             align-items: center;
             justify-content: flex-start;
-            gap: clamp(20px, 3vw, 40px);
+            gap: 50px;
+           flex-grow: 0; 
+           padding-bottom: 40px; 
         }
 
-        .temperature {
-            font-size: clamp(4rem, 8vw, 6.5rem);
-            font-weight: 600;
-            margin: 0;
+        .main-temp {
+            font-size: 140px;
+            font-weight: 700;
+            line-height: 0.9;            
         }
 
-        .current-weather__icon {
-            width: clamp(100px, 12vw, 140px);
-            height: clamp(100px, 12vw, 140px);
+        .weather-icon-large {
+            width: 180px;
+            height: 180px;
+            flex-shrink: 0;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .weather-details {
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: center;
+            gap: 8px;
+        }
+
+        .weather-desc {
+            font-size: 45px;
+            font-weight: 600;
+            text-transform: capitalize;
+            line-height: 1.2;
+            letter-spacing: -0.5px;
+        }
+
+        .feels-like {
+            font-size: 28px;
+            font-weight: 300;
+            opacity: 0.85;
+        }
+
+        /* ========================================
+           FORECAST SECTION
+           ======================================== */
+        .forecast-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            gap: 40px;
+            margin-top: auto;
+        }
+
+        .forecast-card {
+            flex: 1;
+            height: 340px;
+            
+            /* Subtle glass effect for cards */
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 40px;
+            
+            /* [FIX] "Padding above the day should be the same as below" 
+               Using space-between with explicit top/bottom padding guarantees equal spacing. */
+            padding: 20px 0px 40px 0px;
+            
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .day-name {
+            font-size: 40px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .forecast-icon {
+            width: 120px;
+            height: 120px;
             flex-shrink: 0;
         }
 
-        .current-weather__icon img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+        .temps {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
         }
 
-        .summary {
-            display: grid;
-            gap: 4px;
+        .high-temp {
+            font-size: 40px;
+            font-weight: 700;
+            line-height: 1;
         }
 
-        .summary__condition {
-            margin: 0;
-            font-size: clamp(1.5rem, 2.2vw, 2rem);
-            font-weight: 500;
+        .low-temp {
+            font-size: 30px;
+            font-weight: 400;
+            opacity: 0.75;
+            line-height: 1;
         }
 
-        .summary__feels {
-            margin: 0;
-            color: var(--text-muted);
-            font-size: clamp(1rem, 1.6vw, 1.25rem);
+        /* ========================================
+           LOADING & ERROR STATES
+           ======================================== */
+        .loading {
+            opacity: 0.5;
         }
 
-        .status-message {
-            margin: 0 0 16px;
-            color: var(--text-secondary);
-            font-size: clamp(0.95rem, 1.3vw, 1.1rem);
-        }
-
-        .status-message[hidden] {
+        .error-message {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 100, 100, 0.2);
+            padding: 15px 30px;
+            border-radius: 20px;
+            font-size: 18px;
             display: none;
         }
 
-        .forecast {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: clamp(12px, 1.6vw, 24px);
+        .error-message.show {
+            display: block;
         }
 
-        .forecast-day {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 24px;
-            padding: clamp(16px, 2vw, 24px);
-            display: grid;
-            justify-items: center;
-            gap: 12px;
-            text-align: center;
-            backdrop-filter: blur(12px);
+        /* ========================================
+           UTILITY CLASSES
+           ======================================== */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
         }
 
-        .forecast-day__name {
-            font-size: clamp(1rem, 1.4vw, 1.25rem);
-            margin: 0;
-            font-weight: 600;
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
-        .forecast-day__icon {
-            width: 80px;
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .forecast-day__icon img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        .forecast-day__high {
-            margin: 0;
-            font-weight: 600;
-            font-size: clamp(1.25rem, 1.8vw, 1.5rem);
-        }
-
-        .forecast-day__low {
-            margin: 0;
-            color: var(--text-muted);
-            font-size: clamp(1rem, 1.4vw, 1.125rem);
-        }
-
-        .error-state {
-            color: #ff6b6b;
-        }
-
-        @media (max-width: 768px) {
-            .current-weather__header {
-                align-items: flex-start;
-            }
-
-            .current-weather__details {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .forecast {
-                grid-template-columns: repeat(3, 1fr);
-                gap: clamp(8px, 2vw, 16px);
-            }
+        /* Hidden but accessible */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
         }
     </style>
 </head>
 <body>
-    <main class="weather-app">
-        <div class="branding">Brought to you by<br>Bow Valley College</div>
-        
-        <section class="current-weather" aria-live="polite">
-            <header class="current-weather__header">
-                <div>
-                    <p class="location" id="location">Calgary, Alberta</p>
-                    <p class="date" id="date">Loading weather data...</p>
+
+    <div class="dashboard-container">
+        <!-- ========================================
+             HEADER
+             ======================================== -->
+        <header class="header">
+            <div class="location-info">
+                <h1 id="city-name">Calgary, Alberta</h1>
+                <h2 id="current-date">Friday, November 28</h2>
+            </div>
+            
+            <div class="branding">
+                <span class="brought-to-you">Brought to you by</span>
+                <div class="logo-container">
+                    <img src="icons/logo.svg" 
+                         alt="Bow Valley College" 
+                         class="logo-svg"
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 280 99%22%3E%3Crect width=%22280%22 height=%2299%22 fill=%22%23fff%22 opacity=%220.3%22 rx=%2210%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22Poppins, sans-serif%22 font-size=%2224%22 font-weight=%22600%22 fill=%22%23fff%22%3EBow Valley%3C/text%3E%3Ctext x=%2250%25%22 y=%2270%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22Poppins, sans-serif%22 font-size=%2220%22 fill=%22%23fff%22%3ECollege%3C/text%3E%3C/svg%3E';">
                 </div>
-            </header>
-            <div class="current-weather__details">
-                <div class="temperature" id="temperature">--°</div>
-                <div class="current-weather__icon" aria-hidden="true">
-                    <img id="currentIconImg" src="" alt="Weather icon">
-                </div>
-                <div class="summary">
-                    <p class="summary__condition" id="condition">Loading current conditions...</p>
-                    <p class="summary__feels" id="feels">Feels like --°</p>
-                </div>
+            </div>
+        </header>
+
+        <!-- ========================================
+             CURRENT WEATHER
+             ======================================== -->
+        <section class="current-weather" role="region" aria-label="Current weather">
+            <div class="main-temp" id="main-temp" aria-label="Current temperature">-10°</div>
+            <img src="icons/day-broken-clouds.svg" 
+                 alt="Weather condition icon" 
+                 id="main-icon" 
+                 class="weather-icon-large"
+                 onerror="this.style.display='none';">
+            
+            <div class="weather-details">
+                <div class="weather-desc" id="weather-desc">Overcast Clouds</div>
+                <div class="feels-like" id="feels-like">Feels like -17°</div>
             </div>
         </section>
 
-        <section aria-label="3-day forecast">
-            <p class="status-message" id="forecastStatus" hidden>Loading 3-day forecast...</p>
-            <div class="forecast" id="forecast"></div>
+        <!-- ========================================
+             3-DAY FORECAST
+             ======================================== -->
+        <section class="forecast-row" id="forecast-container" role="region" aria-label="3-day forecast">
+            <!-- Forecast cards will be injected here by JavaScript -->
+            <div class="forecast-card loading">
+                <div class="day-name">Sat</div>
+                <img src="icons/day-broken-clouds.svg" class="forecast-icon" alt="Weather icon">
+                <div class="temps">
+                    <div class="high-temp">--°</div>
+                    <div class="low-temp">--°</div>
+                </div>
+            </div>
+            <div class="forecast-card loading">
+                <div class="day-name">Sun</div>
+                <img src="icons/day-broken-clouds.svg" class="forecast-icon" alt="Weather icon">
+                <div class="temps">
+                    <div class="high-temp">--°</div>
+                    <div class="low-temp">--°</div>
+                </div>
+            </div>
+            <div class="forecast-card loading">
+                <div class="day-name">Mon</div>
+                <img src="icons/day-broken-clouds.svg" class="forecast-icon" alt="Weather icon">
+                <div class="temps">
+                    <div class="high-temp">--°</div>
+                    <div class="low-temp">--°</div>
+                </div>
+            </div>
         </section>
-    </main>
+    </div>
 
+    <!-- Error message container -->
+    <div class="error-message" id="error-message" role="alert"></div>
+
+    <!-- ========================================
+         JAVASCRIPT
+         ======================================== -->
     <script>
-        const API_KEY = '597f4bddb6a3c7f1895b1d7ecaf07912';
-        const CALGARY_LAT = 51.0447;
-        const CALGARY_LON = -114.0719;
-
-        const selectors = {
-            location: document.getElementById('location'),
-            date: document.getElementById('date'),
-            temperature: document.getElementById('temperature'),
-            condition: document.getElementById('condition'),
-            feels: document.getElementById('feels'),
-            currentIconImg: document.getElementById('currentIconImg'),
-            forecast: document.getElementById('forecast'),
-            forecastStatus: document.getElementById('forecastStatus')
+        // ========================================
+        // Configuration
+        // ========================================
+        const CONFIG = {
+            API_KEY: '597f4bddb6a3c7f1895b1d7ecaf07912',
+            CITY: 'Calgary',
+            UNITS: 'metric',
+            UPDATE_INTERVAL: 1800000, // 30 minutes
+            RETRY_DELAY: 60000, // 1 minute on error
         };
 
-        const formatTemperature = (value) => `${Math.round(value)}°`;
+        // ========================================
+        // Icon Mapping
+        // ========================================
+        const ICON_MAP = {
+            '01d': 'day-clear-sky.svg',
+            '01n': 'night-clear-sky.svg',
+            '02d': 'day-few-clouds.svg',
+            '02n': 'night-few-clouds.svg',
+            '03d': 'day-scattered-clouds.svg',
+            '03n': 'day-scattered-clouds.svg',
+            '04d': 'day-broken-clouds.svg',
+            '04n': 'day-broken-clouds.svg',
+            '09d': 'day-shower-rain.svg',
+            '09n': 'night-rain.svg',
+            '10d': 'day-rain.svg',
+            '10n': 'night-rain.svg',
+            '11d': 'day-thunderstorm.svg',
+            '11n': 'day-thunderstorm.svg',
+            '13d': 'night-snow.svg',
+            '13n': 'night-snow.svg',
+            '50d': 'night-mist.svg',
+            '50n': 'night-mist.svg'
+        };
 
-        const capitalize = (text = '') =>
-            text.split(' ')
-                .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-                .join(' ');
+        // ========================================
+        // Utility Functions
+        // ========================================
+        
+        /**
+         * Get local icon path with fallback to OpenWeather CDN
+         */
+        function getIconPath(code) {
+            const fileName = ICON_MAP[code] || 'day-clear-sky.svg';
+            return `icons/${fileName}`;
+        }
 
-        const getLocalIconPath = (iconCode) => {
-            const iconMap = {
-                '01d': 'day-clear-sky.svg',
-                '01n': 'night-clear-sky.svg',
-                '02d': 'day-few-clouds.svg',
-                '02n': 'night-few-clouds.svg',
-                '03d': 'day-scattered-clouds.svg',
-                '03n': 'day-scattered-clouds.svg',
-                '04d': 'day-broken-clouds.svg',
-                '04n': 'day-broken-clouds.svg',
-                '09d': 'day-shower-rain.svg',
-                '09n': 'night-rain.svg',
-                '10d': 'day-rain.svg',
-                '10n': 'night-rain.svg',
-                '11d': 'day-thunderstorm.svg',
-                '11n': 'day-thunderstorm.svg',
-                '13d': 'night-snow.svg',
-                '13n': 'night-snow.svg',
-                '50d': 'night-mist.svg',
-                '50n': 'night-mist.svg'
-            };
+        /**
+         * Get fallback icon URL from OpenWeather
+         */
+        function getFallbackIcon(code) {
+            return `https://openweathermap.org/img/wn/${code}@4x.png`;
+        }
+
+        /**
+         * Format date as "Weekday, Month Day"
+         */
+        function getFormattedDate(dateObj) {
+            const options = { weekday: 'long', month: 'long', day: 'numeric' };
+            return dateObj.toLocaleDateString('en-US', options);
+        }
+
+        /**
+         * Get short day name (e.g., "Sat")
+         */
+        function getDayName(dateObj) {
+            return dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+        }
+
+        /**
+         * Round temperature and format with degree symbol
+         */
+        function formatTemp(temp) {
+            return `${Math.round(temp)}°`;
+        }
+
+        /**
+         * Show error message to user
+         */
+        function showError(message) {
+            const errorEl = document.getElementById('error-message');
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+            setTimeout(() => errorEl.classList.remove('show'), 5000);
+        }
+
+        /**
+         * Log error with timestamp
+         */
+        function logError(context, error) {
+            console.error(`[${new Date().toISOString()}] ${context}:`, error);
+        }
+
+        // ========================================
+        // API Functions
+        // ========================================
+        
+        /**
+         * Fetch current weather data
+         */
+        async function fetchCurrentWeather() {
+            const url = `https://api.openweathermap.org/data/2.5/weather?q=${CONFIG.CITY}&units=${CONFIG.UNITS}&appid=${CONFIG.API_KEY}`;
+            const response = await fetch(url);
             
-            return `icons/${iconMap[iconCode] || 'day-clear-sky.svg'}`;
-        };
-
-        const setIconVariant = (iconCode) => {
-            const iconPath = getLocalIconPath(iconCode);
-            selectors.currentIconImg.src = iconPath;
-        };
-
-        const showError = (message) => {
-            selectors.condition.textContent = message;
-            selectors.condition.classList.add('error-state');
-            selectors.feels.textContent = 'Please check your internet connection';
-            selectors.forecastStatus.textContent = 'Unable to load forecast data';
-            selectors.forecastStatus.hidden = false;
-            selectors.forecast.innerHTML = '';
-        };
-
-        const fetchJson = async (url) => {
-            try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    let errorMessage = `API Error ${response.status}: ${response.statusText}`;
-                    
-                    if (response.status === 401) {
-                        errorMessage = 'Invalid API key. Please verify your OpenWeatherMap API key is correct and activated.';
-                    } else if (response.status === 429) {
-                        errorMessage = 'API rate limit exceeded. Please try again later.';
-                    } else if (response.status === 404) {
-                        errorMessage = 'Weather data not found for Calgary.';
-                    }
-                    
-                    throw new Error(errorMessage);
-                }
-                return response.json();
-            } catch (error) {
-                if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    throw new Error('Network error: Unable to connect to weather service. Check your internet connection.');
-                }
-                throw error;
+            if (!response.ok) {
+                throw new Error(`Weather API returned ${response.status}`);
             }
-        };
-
-        const updateCurrentWeather = (data) => {
-            const timezoneOffset = data.timezone;
-            const localDate = new Date((data.dt + timezoneOffset) * 1000);
-            const weather = data.weather[0];
-
-            selectors.date.textContent = localDate.toLocaleDateString('en-US', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-                timeZone: 'UTC'
-            });
-            selectors.temperature.textContent = formatTemperature(data.main.temp);
-            selectors.condition.textContent = capitalize(weather.description);
-            selectors.condition.classList.remove('error-state');
-            selectors.feels.textContent = `Feels like ${formatTemperature(data.main.feels_like)}`;
-
-            setIconVariant(weather.icon);
-        };
-
-        const buildForecastDays = (forecast) => {
-            const timezoneOffset = forecast.city.timezone;
-            const grouped = new Map();
-
-            forecast.list.forEach((entry) => {
-                const localMs = (entry.dt + timezoneOffset) * 1000;
-                const localDate = new Date(localMs);
-                const key = `${localDate.getUTCFullYear()}-${String(localDate.getUTCMonth() + 1).padStart(2, '0')}-${String(localDate.getUTCDate()).padStart(2, '0')}`;
-
-                if (!grouped.has(key)) {
-                    grouped.set(key, {
-                        date: localDate,
-                        samples: [],
-                        min: Number.POSITIVE_INFINITY,
-                        max: Number.NEGATIVE_INFINITY,
-                    });
-                }
-
-                const group = grouped.get(key);
-                group.samples.push({ entry, localDate });
-                group.min = Math.min(group.min, entry.main.temp_min);
-                group.max = Math.max(group.max, entry.main.temp_max);
-            });
-
-            return Array.from(grouped.values())
-                .sort((a, b) => a.date.getTime() - b.date.getTime())
-                .slice(1, 4)
-                .map((group) => {
-                    const bestSample = group.samples.reduce((selected, candidate) => {
-                        const candidateHour = candidate.localDate.getUTCHours();
-                        const candidateDiff = Math.abs(candidateHour - 12);
-                        if (!selected || candidateDiff < selected.diff) {
-                            return { ...candidate, diff: candidateDiff };
-                        }
-                        return selected;
-                    }, null);
-
-                    const representative = bestSample ? bestSample.entry : group.samples[0].entry;
-                    return {
-                        date: group.date,
-                        high: group.max,
-                        low: group.min,
-                        condition: representative.weather[0],
-                    };
-                });
-        };
-
-        const renderForecast = (days) => {
-            const container = selectors.forecast;
-            container.innerHTML = '';
-            selectors.forecastStatus.hidden = true;
-
-            if (!days.length) {
-                selectors.forecastStatus.textContent = 'Forecast data temporarily unavailable';
-                selectors.forecastStatus.hidden = false;
-                return;
+            
+            const data = await response.json();
+            
+            if (data.cod !== 200) {
+                throw new Error(`Weather API error: ${data.message || 'Unknown error'}`);
             }
+            
+            return data;
+        }
 
-            const dayFormatter = new Intl.DateTimeFormat('en-US', {
-                weekday: 'short',
-                timeZone: 'UTC',
-            });
+        /**
+         * Fetch forecast data
+         */
+        async function fetchForecast() {
+            const url = `https://api.openweathermap.org/data/2.5/forecast?q=${CONFIG.CITY}&units=${CONFIG.UNITS}&appid=${CONFIG.API_KEY}`;
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`Forecast API returned ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.cod !== "200") {
+                throw new Error(`Forecast API error: ${data.message || 'Unknown error'}`);
+            }
+            
+            return data.list;
+        }
 
-            days.forEach((day) => {
-                const dayElement = document.createElement('article');
-                dayElement.className = 'forecast-day';
-
-                const dayName = dayFormatter.format(day.date);
-                const iconPath = getLocalIconPath(day.condition.icon);
-
-                dayElement.innerHTML = `
-                    <h2 class="forecast-day__name">${dayName}</h2>
-                    <div class="forecast-day__icon" aria-hidden="true">
-                        <img src="${iconPath}" alt="${day.condition.description}">
-                    </div>
-                    <p class="forecast-day__high">${formatTemperature(day.high)}</p>
-                    <p class="forecast-day__low">${formatTemperature(day.low)}</p>
-                `;
-
-                dayElement.setAttribute('aria-label',
-                    `${dayName}: ${capitalize(day.condition.description)}, high ${formatTemperature(day.high)}, low ${formatTemperature(day.low)}`
-                );
-
-                container.appendChild(dayElement);
-            });
-        };
-
-        const loadWeather = async () => {
+        /**
+         * Main function to fetch all weather data
+         */
+        async function fetchWeatherData() {
             try {
-                console.log('Loading weather data for Calgary...');
+                // Fetch both current weather and forecast in parallel
+                const [currentWeather, forecastList] = await Promise.all([
+                    fetchCurrentWeather(),
+                    fetchForecast()
+                ]);
                 
-                const currentUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${CALGARY_LAT}&lon=${CALGARY_LON}&units=metric&appid=${API_KEY}`;
-                const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${CALGARY_LAT}&lon=${CALGARY_LON}&units=metric&appid=${API_KEY}`;
-
-                try {
-                    const [current, forecast] = await Promise.all([
-                        fetchJson(currentUrl),
-                        fetchJson(forecastUrl)
-                    ]);
-                    
-                    console.log('Weather data loaded successfully');
-                    updateCurrentWeather(current);
-                    renderForecast(buildForecastDays(forecast));
-                } catch (directError) {
-                    if (directError.message.includes('Network error')) {
-                        console.log('Direct API call failed, trying with CORS proxy...');
-                        const proxy = 'https://corsproxy.io/?';
-                        const proxiedCurrentUrl = proxy + encodeURIComponent(currentUrl);
-                        const proxiedForecastUrl = proxy + encodeURIComponent(forecastUrl);
-                        
-                        const [current, forecast] = await Promise.all([
-                            fetchJson(proxiedCurrentUrl),
-                            fetchJson(proxiedForecastUrl)
-                        ]);
-                        
-                        console.log('Weather data loaded successfully via proxy');
-                        updateCurrentWeather(current);
-                        renderForecast(buildForecastDays(forecast));
-                    } else {
-                        throw directError;
-                    }
-                }
+                updateCurrentWeather(currentWeather);
+                updateForecast(forecastList);
+                
             } catch (error) {
-                console.error('Weather data failed to load:', error);
-                showError(error.message || 'Unable to retrieve weather data');
+                logError('fetchWeatherData', error);
+                showError('Unable to load weather data. Retrying...');
+                
+                // Retry after delay
+                setTimeout(fetchWeatherData, CONFIG.RETRY_DELAY);
             }
-        };
+        }
 
-        loadWeather();
-        setInterval(loadWeather, 10 * 60 * 1000);
+        // ========================================
+        // UI Update Functions
+        // ========================================
+        
+        /**
+         * Update current weather display
+         */
+        function updateCurrentWeather(data) {
+            try {
+                // Update date
+                const now = new Date();
+                document.getElementById('current-date').textContent = getFormattedDate(now);
+                
+                // Update city name
+                document.getElementById('city-name').textContent = `${data.name}, Alberta`;
+                
+                // Update temperature
+                document.getElementById('main-temp').textContent = formatTemp(data.main.temp);
+                
+                // Update description
+                const description = data.weather[0].description;
+                document.getElementById('weather-desc').textContent = description;
+                
+                // Update feels like
+                document.getElementById('feels-like').textContent = `Feels like ${formatTemp(data.main.feels_like)}`;
+                
+                // Update weather icon
+                const iconCode = data.weather[0].icon;
+                const iconEl = document.getElementById('main-icon');
+                iconEl.src = getIconPath(iconCode);
+                iconEl.style.display = 'block';
+                iconEl.onerror = function() {
+                    this.src = getFallbackIcon(iconCode);
+                };
+                
+            } catch (error) {
+                logError('updateCurrentWeather', error);
+            }
+        }
+
+        /**
+         * Process and update forecast display
+         */
+        function updateForecast(forecastList) {
+            try {
+                // Group forecast data by day
+                const dailyData = {};
+                const today = new Date().toISOString().split('T')[0];
+
+                forecastList.forEach(item => {
+                    const date = item.dt_txt.split(' ')[0];
+                    
+                    // Skip today
+                    if (date === today) return;
+                    
+                    // Initialize day data
+                    if (!dailyData[date]) {
+                        dailyData[date] = {
+                            temps: [],
+                            icon: item.weather[0].icon
+                        };
+                    }
+                    
+                    // Collect temperatures
+                    dailyData[date].temps.push(item.main.temp);
+                    
+                    // Use midday icon (12:00) if available
+                    if (item.dt_txt.includes("12:00:00")) {
+                        dailyData[date].icon = item.weather[0].icon;
+                    }
+                });
+
+                // Get next 3 days
+                const days = Object.keys(dailyData).slice(0, 3);
+                const container = document.getElementById('forecast-container');
+                container.innerHTML = '';
+
+                // Create forecast cards
+                days.forEach(dayDate => {
+                    const dayInfo = dailyData[dayDate];
+                    const min = Math.round(Math.min(...dayInfo.temps));
+                    const max = Math.round(Math.max(...dayInfo.temps));
+                    const dayName = getDayName(new Date(dayDate + 'T12:00:00'));
+                    const iconSrc = getIconPath(dayInfo.icon);
+                    const fallbackSrc = getFallbackIcon(dayInfo.icon);
+
+                    const card = document.createElement('div');
+                    card.className = 'forecast-card fade-in';
+                    card.innerHTML = `
+                        <div class="day-name">${dayName}</div>
+                        <img src="${iconSrc}" 
+                             class="forecast-icon" 
+                             alt="Weather icon for ${dayName}"
+                             onerror="this.src='${fallbackSrc}'">
+                        <div class="temps">
+                            <div class="high-temp">${max}°</div>
+                            <div class="low-temp">${min}°</div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(card);
+                });
+                
+            } catch (error) {
+                logError('updateForecast', error);
+            }
+        }
+
+        // ========================================
+        // Initialization
+        // ========================================
+        
+        // Fetch weather data immediately on load
+        fetchWeatherData();
+        
+        // Set up periodic updates
+        setInterval(fetchWeatherData, CONFIG.UPDATE_INTERVAL);
+        
+        // Log initialization
+        console.log(`Weather Dashboard initialized for ${CONFIG.CITY}`);
+        console.log(`Updates every ${CONFIG.UPDATE_INTERVAL / 60000} minutes`);
+        
     </script>
 </body>
 </html>
