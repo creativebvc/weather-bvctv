@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BVCTV Weather Forecast</title>
+    <title>BVC Weather Dashboard</title>
     
     <!-- Import Poppins Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,8 +26,8 @@
             font-family: 'Poppins', sans-serif;
             color: white;
             
-            /* Gradient background matching mockup */
-            background: linear-gradient(135deg, #6B9AFF 0%, #A78EF7 50%, #D898FF 100%);
+            /* Background will be set by JS, default fallback */
+            background: linear-gradient(45deg, #3278fe 0%, #6077f9 50%, #a370f2 100%);
             background-size: 100% 100%;
             
             /* Center the dashboard */
@@ -39,9 +39,6 @@
             /* Prevent text selection for TV display */
             user-select: none;
             -webkit-user-select: none;
-            
-            /* Smooth transition for background changes */
-            transition: background 2s ease-in-out;
         }
 
         /* ========================================
@@ -76,22 +73,21 @@
             justify-content: space-between;
             align-items: flex-start;
             flex-shrink: 0;
-            margin-bottom: 0; /* Reset margin to allow flex spacing to take over */
+            margin-bottom: 10px;
         }
 
         .location-info h1 {
             font-weight: 700;
             font-size: 48px;
             line-height: 1.1;
-            margin-bottom: 0;            
+            margin-bottom: 10px;            
         }
 
         .location-info h2 {
             font-weight: 400;
             font-size: 26px;
             opacity: 0.85;
-            letter-spacing: 0.3px;                     
-            margin-top: 15px; 
+            letter-spacing: 0.3px;
         }
 
         .branding {
@@ -129,10 +125,10 @@
         .current-weather {
             display: flex;
             align-items: center;
+            flex-grow: 0;
             justify-content: flex-start;
-            gap: 30px;
-           flex-grow: 0; 
-           padding-bottom: 40px; 
+            gap: 50px;
+            margin-bottom: 10px;
         }
 
         .main-temp {
@@ -194,14 +190,12 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 40px;
             
-            /* [FIX] "Padding above the day should be the same as below" 
-               Using space-between with explicit top/bottom padding guarantees equal spacing. */
-            padding: 20px 0px 40px 0px;
+            padding: 10px 20px 20px 20px;
             
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
+            justify-content: space-evenly;
         }
 
         .day-name {
@@ -376,39 +370,6 @@
         };
 
         // ========================================
-        // Background Gradients by Time
-        // ========================================
-        const BACKGROUND_GRADIENTS = {
-            dawn: 'linear-gradient(45deg, #ff3a56 0%, #fb664d 50%, #f58f3e 100%)',      // 7am-8am: Orange/pink sunrise
-            day: 'linear-gradient(45deg, #3278fe 0%, #6077f9 50%, #a370f2 100%)',       // 8am-6pm: Blue/purple day
-            night: 'linear-gradient(45deg, #2e2baf 0%, #1b2d77 50%, #102a58 100%)'      // 6pm-7am: Dark night
-        };
-
-        /**
-         * Set background gradient based on current time
-         */
-        function setTimeBasedBackground() {
-            const now = new Date();
-            const hour = now.getHours();
-            
-            let gradient;
-            
-            if (hour >= 7 && hour < 8) {
-                // Dawn: 7am-8am
-                gradient = BACKGROUND_GRADIENTS.dawn;
-            } else if (hour >= 8 && hour < 18) {
-                // Day: 8am-6pm
-                gradient = BACKGROUND_GRADIENTS.day;
-            } else {
-                // Night: 6pm-7am
-                gradient = BACKGROUND_GRADIENTS.night;
-            }
-            
-            document.body.style.background = gradient;
-            document.body.style.backgroundSize = '100% 100%';
-        }
-
-        // ========================================
         // Icon Mapping
         // ========================================
         const ICON_MAP = {
@@ -436,6 +397,20 @@
         // Utility Functions
         // ========================================
         
+        /**
+         * Update background based on time (Day: 8am-8pm, Night: 8pm-8am)
+         */
+        function updateBackground() {
+            const hour = new Date().getHours();
+            const isDay = hour >= 8 && hour < 20;
+            
+            const dayGradient = 'linear-gradient(45deg, #3278fe 0%, #6077f9 50%, #a370f2 100%)';
+            const nightGradient = 'linear-gradient(45deg, #133881 0%, #1936a3 50%, #252dcc 100%)';
+            
+            document.body.style.background = isDay ? dayGradient : nightGradient;
+            document.body.style.backgroundSize = '100% 100%';
+        }
+
         /**
          * Get local icon path with fallback to OpenWeather CDN
          */
@@ -669,17 +644,13 @@
         // Initialization
         // ========================================
         
-        // Set initial background based on time
-        setTimeBasedBackground();
-        
         // Fetch weather data immediately on load
         fetchWeatherData();
+        updateBackground();
         
         // Set up periodic updates
         setInterval(fetchWeatherData, CONFIG.UPDATE_INTERVAL);
-        
-        // Update background every 5 minutes in case time period changes
-        setInterval(setTimeBasedBackground, 300000);
+        setInterval(updateBackground, 60000); // Check background every minute
         
         // Log initialization
         console.log(`Weather Dashboard initialized for ${CONFIG.CITY}`);
