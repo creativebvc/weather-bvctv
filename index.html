@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <style>
+   <style>
         /* ========================================
            CSS RESET & BASE
            ======================================== */
@@ -25,18 +25,12 @@
             width: 100vw;
             font-family: 'Poppins', sans-serif;
             color: white;
-            
-            /* Background will be set by JS, default fallback */
             background: linear-gradient(45deg, #3278fe 0%, #6077f9 50%, #a370f2 100%);
             background-size: 100% 100%;
-            
-            /* Center the dashboard */
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            
-            /* Prevent text selection for TV display */
             user-select: none;
             -webkit-user-select: none;
         }
@@ -45,22 +39,16 @@
            MAIN DASHBOARD CONTAINER
            ======================================== */
         .dashboard-container {
-            /* Dimensions: 1920x1080 with 100px padding = 1720x880 */
             width: 1720px;
             height: 880px;
             flex-shrink: 0;
-            
-            /* Glassmorphism effect */
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(40px);
             -webkit-backdrop-filter: blur(40px);
             border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 60px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
-            
-            /* Internal padding */
             padding: 75px;
-            
             display: flex;
             flex-direction: column;
         }
@@ -95,16 +83,17 @@
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            gap: 20px;
+            /* gap: 20px removed */
         }
 
         .brought-to-you {
             font-size: 21px;
             font-weight: 400;
             opacity: 0.9;
+            /* Added margin to replace gap */
+            margin-bottom: 20px;
         }
 
-        /* Logo styling with fallback */
         .logo-container {
             width: 280px;
             height: 99px;
@@ -127,14 +116,16 @@
             align-items: center;
             flex-grow: 0;
             justify-content: flex-start;
-            gap: 50px;
+            /* gap: 50px removed */
             margin-bottom: 10px;
         }
 
         .main-temp {
             font-size: 140px;
             font-weight: 700;
-            line-height: 0.9;            
+            line-height: 0.9;   
+            /* Added margin to replace gap */
+            margin-right: 50px;         
         }
 
         .weather-icon-large {
@@ -142,6 +133,8 @@
             height: 180px;
             flex-shrink: 0;
             animation: float 6s ease-in-out infinite;
+            /* Added margin to replace gap */
+            margin-right: 50px;
         }
 
         @keyframes float {
@@ -153,7 +146,7 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            gap: 8px;
+            /* gap: 8px removed */
         }
 
         .weather-desc {
@@ -162,6 +155,8 @@
             text-transform: capitalize;
             line-height: 1.2;
             letter-spacing: -0.5px;
+            /* Added margin to replace gap */
+            margin-bottom: 8px;
         }
 
         .feels-like {
@@ -177,25 +172,30 @@
             display: flex;
             justify-content: space-between;
             width: 100%;
-            gap: 40px;
+            /* gap: 40px removed */
             margin-top: auto;
         }
 
         .forecast-card {
             flex: 1;
             height: 340px;
-            
-            /* Subtle glass effect for cards */
             background: rgba(255, 255, 255, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 40px;
-            
             padding: 10px 20px 20px 20px;
             
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: space-evenly;
+
+            /* Added margin to replace gap */
+            margin-right: 40px;
+        }
+
+        /* Important: Remove margin from the last card so it doesn't push off the edge */
+        .forecast-card:last-child {
+            margin-right: 0;
         }
 
         .day-name {
@@ -214,13 +214,15 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 10px;
+            /* gap: 10px removed */
         }
 
         .high-temp {
             font-size: 40px;
             font-weight: 700;
             line-height: 1;
+            /* Added margin to replace gap */
+            margin-bottom: 10px;
         }
 
         .low-temp {
@@ -233,9 +235,7 @@
         /* ========================================
            LOADING & ERROR STATES
            ======================================== */
-        .loading {
-            opacity: 0.5;
-        }
+        .loading { opacity: 0.5; }
 
         .error-message {
             position: absolute;
@@ -248,34 +248,12 @@
             font-size: 18px;
             display: none;
         }
-
-        .error-message.show {
-            display: block;
-        }
-
-        /* ========================================
-           UTILITY CLASSES
-           ======================================== */
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* Hidden but accessible */
+        .error-message.show { display: block; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border-width: 0;
+            position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+            overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border-width: 0;
         }
     </style>
 </head>
