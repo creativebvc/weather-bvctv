@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BVC Weather Dashboard</title>
+    <title>Bow Valley Weather Dashboard</title>
     
     <!-- Import Poppins Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -358,99 +358,44 @@
          JAVASCRIPT
          ======================================== -->
     <script>
-        // ========================================
-        // Configuration
-        // ========================================
         const CONFIG = {
             API_KEY: '597f4bddb6a3c7f1895b1d7ecaf07912',
             CITY: 'Calgary',
             UNITS: 'metric',
-            UPDATE_INTERVAL: 1800000, // 30 minutes
-            RETRY_DELAY: 60000, // 1 minute on error
+            UPDATE_INTERVAL: 1800000, 
+            RETRY_DELAY: 60000, 
         };
 
-        // ========================================
-        // Icon Mapping
-        // ========================================
         const ICON_MAP = {
-            '01d': 'day-clear-sky.svg',
-            '01n': 'night-clear-sky.svg',
-            '02d': 'day-few-clouds.svg',
-            '02n': 'night-few-clouds.svg',
-            '03d': 'day-scattered-clouds.svg',
-            '03n': 'day-scattered-clouds.svg',
-            '04d': 'day-broken-clouds.svg',
-            '04n': 'day-broken-clouds.svg',
-            '09d': 'day-shower-rain.svg',
-            '09n': 'night-rain.svg',
-            '10d': 'day-rain.svg',
-            '10n': 'night-rain.svg',
-            '11d': 'day-thunderstorm.svg',
-            '11n': 'day-thunderstorm.svg',
-            '13d': 'night-snow.svg',
-            '13n': 'night-snow.svg',
-            '50d': 'night-mist.svg',
-            '50n': 'night-mist.svg'
+            '01d': 'day-clear-sky.svg', '01n': 'night-clear-sky.svg',
+            '02d': 'day-few-clouds.svg', '02n': 'night-few-clouds.svg',
+            '03d': 'day-scattered-clouds.svg', '03n': 'day-scattered-clouds.svg',
+            '04d': 'day-broken-clouds.svg', '04n': 'day-broken-clouds.svg',
+            '09d': 'day-shower-rain.svg', '09n': 'night-rain.svg',
+            '10d': 'day-rain.svg', '10n': 'night-rain.svg',
+            '11d': 'day-thunderstorm.svg', '11n': 'day-thunderstorm.svg',
+            '13d': 'night-snow.svg', '13n': 'night-snow.svg',
+            '50d': 'night-mist.svg', '50n': 'night-mist.svg'
         };
 
-        // ========================================
-        // Utility Functions
-        // ========================================
-        
-        /**
-         * Update background based on time (Day: 8am-8pm, Night: 8pm-8am)
-         */
         function updateBackground() {
             const hour = new Date().getHours();
             const isDay = hour >= 8 && hour < 20;
-            
             const dayGradient = 'linear-gradient(45deg, #3278fe 0%, #6077f9 50%, #a370f2 100%)';
             const nightGradient = 'linear-gradient(45deg, #133881 0%, #1936a3 50%, #252dcc 100%)';
-            
-            document.body.style.background = isDay ? dayGradient : nightGradient;
-            document.body.style.backgroundSize = '100% 100%';
+            const wrapper = document.getElementById('screen-wrapper');
+            if (wrapper) {
+                wrapper.style.background = isDay ? dayGradient : nightGradient;
+                wrapper.style.backgroundSize = '100% 100%';
+            }
         }
 
-        /**
-         * Get local icon path with fallback to OpenWeather CDN
-         */
-        function getIconPath(code) {
-            const fileName = ICON_MAP[code] || 'day-clear-sky.svg';
-            return `icons/${fileName}`;
-        }
+        function getIconPath(code) { return `icons/${ICON_MAP[code] || 'day-clear-sky.svg'}`; }
+        function getFallbackIcon(code) { return `https://openweathermap.org/img/wn/${code}@4x.png`; }
+        function getFormattedDate(dateObj) { return dateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }); }
+        function getDayName(dateObj) { return dateObj.toLocaleDateString('en-US', { weekday: 'short' }); }
+        function formatTemp(temp) { return `${Math.round(temp)}°`; }
 
-        /**
-         * Get fallback icon URL from OpenWeather
-         */
-        function getFallbackIcon(code) {
-            return `https://openweathermap.org/img/wn/${code}@4x.png`;
-        }
-
-        /**
-         * Format date as "Weekday, Month Day"
-         */
-        function getFormattedDate(dateObj) {
-            const options = { weekday: 'long', month: 'long', day: 'numeric' };
-            return dateObj.toLocaleDateString('en-US', options);
-        }
-
-        /**
-         * Get short day name (e.g., "Sat")
-         */
-        function getDayName(dateObj) {
-            return dateObj.toLocaleDateString('en-US', { weekday: 'short' });
-        }
-
-        /**
-         * Round temperature and format with degree symbol
-         */
-        function formatTemp(temp) {
-            return `${Math.round(temp)}°`;
-        }
-
-        /**
-         * Show error message to user
-         */
         function showError(message) {
             const errorEl = document.getElementById('error-message');
             errorEl.textContent = message;
@@ -458,122 +403,59 @@
             setTimeout(() => errorEl.classList.remove('show'), 5000);
         }
 
-        /**
-         * Log error with timestamp
-         */
-        function logError(context, error) {
-            console.error(`[${new Date().toISOString()}] ${context}:`, error);
-        }
-
-        // ========================================
-        // API Functions
-        // ========================================
-        
-        /**
-         * Fetch current weather data
-         */
         async function fetchCurrentWeather() {
             const url = `https://api.openweathermap.org/data/2.5/weather?q=${CONFIG.CITY}&units=${CONFIG.UNITS}&appid=${CONFIG.API_KEY}`;
             const response = await fetch(url);
-            
-            if (!response.ok) {
-                throw new Error(`Weather API returned ${response.status}`);
-            }
-            
+            if (!response.ok) throw new Error(`Weather API returned ${response.status}`);
             const data = await response.json();
-            
-            if (data.cod !== 200) {
-                throw new Error(`Weather API error: ${data.message || 'Unknown error'}`);
-            }
-            
+            if (data.cod !== 200) throw new Error(`Weather API error: ${data.message || 'Unknown error'}`);
             return data;
         }
 
-        /**
-         * Fetch forecast data
-         */
         async function fetchForecast() {
             const url = `https://api.openweathermap.org/data/2.5/forecast?q=${CONFIG.CITY}&units=${CONFIG.UNITS}&appid=${CONFIG.API_KEY}`;
             const response = await fetch(url);
-            
-            if (!response.ok) {
-                throw new Error(`Forecast API returned ${response.status}`);
-            }
-            
+            if (!response.ok) throw new Error(`Forecast API returned ${response.status}`);
             const data = await response.json();
-            
-            if (data.cod !== "200") {
-                throw new Error(`Forecast API error: ${data.message || 'Unknown error'}`);
-            }
-            
+            if (data.cod !== "200") throw new Error(`Forecast API error: ${data.message || 'Unknown error'}`);
             return data.list;
         }
 
-        /**
-         * Main function to fetch all weather data
-         */
         async function fetchWeatherData() {
             try {
-                // Fetch both current weather and forecast in parallel
                 const [currentWeather, forecastList] = await Promise.all([
                     fetchCurrentWeather(),
                     fetchForecast()
                 ]);
-                
                 updateCurrentWeather(currentWeather);
                 updateForecast(forecastList);
-                
             } catch (error) {
-                logError('fetchWeatherData', error);
+                console.error(error);
                 showError('Unable to load weather data. Retrying...');
-                
-                // Retry after delay
                 setTimeout(fetchWeatherData, CONFIG.RETRY_DELAY);
             }
         }
 
-        // ========================================
-        // UI Update Functions
-        // ========================================
-        
-        /**
-         * Update current weather display
-         */
         function updateCurrentWeather(data) {
             try {
-                // Update date
                 const now = new Date();
                 document.getElementById('current-date').textContent = getFormattedDate(now);
-                
-                // Update city name
                 document.getElementById('city-name').textContent = `${data.name}, Alberta`;
-                
-                // Update temperature
                 document.getElementById('main-temp').textContent = formatTemp(data.main.temp);
-                
-                // Update description
-                const description = data.weather[0].description;
-                document.getElementById('weather-desc').textContent = description;
-                
-                // Update feels like
+                document.getElementById('weather-desc').textContent = data.weather[0].description;
                 document.getElementById('feels-like').textContent = `Feels like ${formatTemp(data.main.feels_like)}`;
                 
-                // Update weather icon
                 const iconCode = data.weather[0].icon;
                 const iconEl = document.getElementById('main-icon');
                 iconEl.src = getIconPath(iconCode);
                 iconEl.style.display = 'block';
-                iconEl.onerror = function() {
-                    this.src = getFallbackIcon(iconCode);
-                };
-                
-            } catch (error) {
-                logError('updateCurrentWeather', error);
-            }
+                iconEl.onerror = function() { this.src = getFallbackIcon(iconCode); };
+            } catch (error) { console.error(error); }
         }
 
         /**
          * Process and update forecast display
+         * UPDATED: Prioritizes "worst" weather (Snow/Rain) over midday snapshot
          */
         function updateForecast(forecastList) {
             try {
@@ -581,27 +463,50 @@
                 const dailyData = {};
                 const today = new Date().toISOString().split('T')[0];
 
+                // Severity ranking (Lower number = Higher Priority to display)
+                const priority = {
+                    '13': 1, // Snow (Highest priority)
+                    '11': 2, // Thunder
+                    '10': 3, // Rain
+                    '09': 4, // Shower Rain
+                    '50': 5, // Mist
+                    '04': 6, // Broken Clouds
+                    '03': 7, // Scattered Clouds
+                    '02': 8, // Few Clouds
+                    '01': 9  // Clear Sky
+                };
+
                 forecastList.forEach(item => {
                     const date = item.dt_txt.split(' ')[0];
                     
                     // Skip today
                     if (date === today) return;
                     
-                    // Initialize day data
+                    // Initialize day data if new
                     if (!dailyData[date]) {
                         dailyData[date] = {
                             temps: [],
-                            icon: item.weather[0].icon
+                            icon: item.weather[0].icon // Default to first available
                         };
                     }
                     
-                    // Collect temperatures
+                    // Collect temperatures for High/Low calc
                     dailyData[date].temps.push(item.main.temp);
                     
-                    // Use midday icon (12:00) if available
-                    if (item.dt_txt.includes("12:00:00")) {
+                    // --- INTELLIGENT ICON SELECTION ---
+                    // Get the 2-digit code (e.g., "13" from "13d")
+                    const newCode = item.weather[0].icon.slice(0, 2);
+                    const currentCode = dailyData[date].icon.slice(0, 2);
+                    
+                    // If the new item is "worse" weather (lower priority number), swap the icon
+                    // e.g. If we have "04" (Clouds) but see "13" (Snow), switch to Snow.
+                    const newRank = priority[newCode] || 99;
+                    const currentRank = priority[currentCode] || 99;
+                    
+                    if (newRank < currentRank) {
                         dailyData[date].icon = item.weather[0].icon;
                     }
+                    // ----------------------------------
                 });
 
                 // Get next 3 days
@@ -622,40 +527,25 @@
                     card.className = 'forecast-card fade-in';
                     card.innerHTML = `
                         <div class="day-name">${dayName}</div>
-                        <img src="${iconSrc}" 
-                             class="forecast-icon" 
-                             alt="Weather icon for ${dayName}"
-                             onerror="this.src='${fallbackSrc}'">
+                        <img src="${iconSrc}" class="forecast-icon" alt="Weather icon for ${dayName}" onerror="this.src='${fallbackSrc}'">
                         <div class="temps">
                             <div class="high-temp">${max}°</div>
                             <div class="low-temp">${min}°</div>
                         </div>
                     `;
-                    
                     container.appendChild(card);
                 });
                 
             } catch (error) {
-                logError('updateForecast', error);
+                console.error(error); 
             }
         }
 
-        // ========================================
-        // Initialization
-        // ========================================
-        
-        // Fetch weather data immediately on load
         fetchWeatherData();
         updateBackground();
-        
-        // Set up periodic updates
         setInterval(fetchWeatherData, CONFIG.UPDATE_INTERVAL);
-        setInterval(updateBackground, 60000); // Check background every minute
-        
-        // Log initialization
-        console.log(`Weather Dashboard initialized for ${CONFIG.CITY}`);
-        console.log(`Updates every ${CONFIG.UPDATE_INTERVAL / 60000} minutes`);
-        
+        setInterval(updateBackground, 60000);
+        console.log(`Weather Dashboard initialized for ${CONFIG.CITY} (Small Mode)`);
     </script>
 </body>
 </html>
